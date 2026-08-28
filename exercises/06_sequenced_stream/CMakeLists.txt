@@ -1,0 +1,8 @@
+add_library(sequenced_stream src/sequenced_stream.cpp)
+target_include_directories(sequenced_stream PUBLIC include)
+target_compile_features(sequenced_stream PUBLIC cxx_std_20)
+
+add_executable(sequenced_stream_test test/test_sequenced_stream.cpp)
+target_link_libraries(sequenced_stream_test PRIVATE sequenced_stream gtest_main)
+add_test(NAME sequenced_stream_test COMMAND sequenced_stream_test)
+set_tests_properties(sequenced_stream_test PROPERTIES LABELS "exercise06" TIMEOUT 300)

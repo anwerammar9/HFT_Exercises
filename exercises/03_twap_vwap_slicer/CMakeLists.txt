@@ -1,0 +1,8 @@
+add_library(twap_vwap_slicer src/twap_vwap_slicer.cpp)
+target_include_directories(twap_vwap_slicer PUBLIC include)
+target_compile_features(twap_vwap_slicer PUBLIC cxx_std_20)
+
+add_executable(twap_vwap_slicer_test test/test_twap_vwap_slicer.cpp)
+target_link_libraries(twap_vwap_slicer_test PRIVATE twap_vwap_slicer gtest_main)
+add_test(NAME twap_vwap_slicer_test COMMAND twap_vwap_slicer_test)
+set_tests_properties(twap_vwap_slicer_test PROPERTIES LABELS "exercise03" TIMEOUT 300)

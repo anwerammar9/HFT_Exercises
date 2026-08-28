@@ -1,0 +1,8 @@
+add_library(tick_statistics src/tick_statistics.cpp)
+target_include_directories(tick_statistics PUBLIC include)
+target_compile_features(tick_statistics PUBLIC cxx_std_20)
+
+add_executable(tick_statistics_test test/test_tick_statistics.cpp)
+target_link_libraries(tick_statistics_test PRIVATE tick_statistics gtest_main)
+add_test(NAME tick_statistics_test COMMAND tick_statistics_test)
+set_tests_properties(tick_statistics_test PROPERTIES LABELS "exercise01" TIMEOUT 300)

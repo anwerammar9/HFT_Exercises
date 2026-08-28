@@ -1,0 +1,8 @@
+add_library(order_state_machine src/order_state_machine.cpp)
+target_include_directories(order_state_machine PUBLIC include)
+target_compile_features(order_state_machine PUBLIC cxx_std_20)
+
+add_executable(order_state_machine_test test/test_order_state_machine.cpp)
+target_link_libraries(order_state_machine_test PRIVATE order_state_machine gtest_main)
+add_test(NAME order_state_machine_test COMMAND order_state_machine_test)
+set_tests_properties(order_state_machine_test PROPERTIES LABELS "exercise02;tsan;stress" TIMEOUT 300)

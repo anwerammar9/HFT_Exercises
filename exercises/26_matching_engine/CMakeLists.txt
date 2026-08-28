@@ -1,0 +1,8 @@
+add_library(matching_engine src/matching_engine.cpp)
+target_include_directories(matching_engine PUBLIC include)
+target_compile_features(matching_engine PUBLIC cxx_std_20)
+
+add_executable(matching_engine_test test/test_matching_engine.cpp)
+target_link_libraries(matching_engine_test PRIVATE matching_engine gtest_main)
+add_test(NAME matching_engine_test COMMAND matching_engine_test)
+set_tests_properties(matching_engine_test PROPERTIES LABELS "exercise26" TIMEOUT 300)

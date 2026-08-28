@@ -1,0 +1,8 @@
+add_library(arena_allocator src/arena_allocator.cpp)
+target_include_directories(arena_allocator PUBLIC include)
+target_compile_features(arena_allocator PUBLIC cxx_std_20)
+
+add_executable(arena_allocator_test test/test_arena_allocator.cpp)
+target_link_libraries(arena_allocator_test PRIVATE arena_allocator gtest_main)
+add_test(NAME arena_allocator_test COMMAND arena_allocator_test)
+set_tests_properties(arena_allocator_test PROPERTIES LABELS "exercise07" TIMEOUT 300)

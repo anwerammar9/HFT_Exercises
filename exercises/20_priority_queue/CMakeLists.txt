@@ -1,0 +1,8 @@
+add_library(priority_queue src/priority_queue.cpp)
+target_include_directories(priority_queue PUBLIC include)
+target_compile_features(priority_queue PUBLIC cxx_std_20)
+
+add_executable(priority_queue_test test/test_priority_queue.cpp)
+target_link_libraries(priority_queue_test PRIVATE priority_queue gtest_main)
+add_test(NAME priority_queue_test COMMAND priority_queue_test)
+set_tests_properties(priority_queue_test PROPERTIES LABELS "exercise20" TIMEOUT 300)

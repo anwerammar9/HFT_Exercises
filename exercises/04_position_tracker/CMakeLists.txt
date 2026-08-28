@@ -1,0 +1,8 @@
+add_library(position_tracker src/position_tracker.cpp)
+target_include_directories(position_tracker PUBLIC include)
+target_compile_features(position_tracker PUBLIC cxx_std_20)
+
+add_executable(position_tracker_test test/test_position_tracker.cpp)
+target_link_libraries(position_tracker_test PRIVATE position_tracker gtest_main)
+add_test(NAME position_tracker_test COMMAND position_tracker_test)
+set_tests_properties(position_tracker_test PROPERTIES LABELS "exercise04" TIMEOUT 300)

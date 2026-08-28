@@ -1,0 +1,8 @@
+add_library(pool_allocator src/pool_allocator.cpp)
+target_include_directories(pool_allocator PUBLIC include)
+target_compile_features(pool_allocator PUBLIC cxx_std_20)
+
+add_executable(pool_allocator_test test/test_pool_allocator.cpp)
+target_link_libraries(pool_allocator_test PRIVATE pool_allocator gtest_main)
+add_test(NAME pool_allocator_test COMMAND pool_allocator_test)
+set_tests_properties(pool_allocator_test PROPERTIES LABELS "exercise08" TIMEOUT 300)

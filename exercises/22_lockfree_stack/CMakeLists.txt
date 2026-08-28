@@ -1,0 +1,8 @@
+add_library(lockfree_stack src/lockfree_stack.cpp)
+target_include_directories(lockfree_stack PUBLIC include)
+target_compile_features(lockfree_stack PUBLIC cxx_std_20)
+
+add_executable(lockfree_stack_test test/test_lockfree_stack.cpp)
+target_link_libraries(lockfree_stack_test PRIVATE lockfree_stack gtest_main)
+add_test(NAME lockfree_stack_test COMMAND lockfree_stack_test)
+set_tests_properties(lockfree_stack_test PROPERTIES LABELS "exercise22;tsan;stress" TIMEOUT 300)

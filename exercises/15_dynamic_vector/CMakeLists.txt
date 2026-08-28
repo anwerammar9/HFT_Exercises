@@ -1,0 +1,8 @@
+add_library(dynamic_vector src/dynamic_vector.cpp)
+target_include_directories(dynamic_vector PUBLIC include)
+target_compile_features(dynamic_vector PUBLIC cxx_std_20)
+
+add_executable(dynamic_vector_test test/test_dynamic_vector.cpp)
+target_link_libraries(dynamic_vector_test PRIVATE dynamic_vector gtest_main)
+add_test(NAME dynamic_vector_test COMMAND dynamic_vector_test)
+set_tests_properties(dynamic_vector_test PROPERTIES LABELS "exercise15" TIMEOUT 300)

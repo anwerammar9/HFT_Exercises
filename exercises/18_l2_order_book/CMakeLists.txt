@@ -1,0 +1,8 @@
+add_library(l2_order_book src/l2_order_book.cpp)
+target_include_directories(l2_order_book PUBLIC include)
+target_compile_features(l2_order_book PUBLIC cxx_std_20)
+
+add_executable(l2_order_book_test test/test_l2_order_book.cpp)
+target_link_libraries(l2_order_book_test PRIVATE l2_order_book gtest_main)
+add_test(NAME l2_order_book_test COMMAND l2_order_book_test)
+set_tests_properties(l2_order_book_test PROPERTIES LABELS "exercise18" TIMEOUT 300)

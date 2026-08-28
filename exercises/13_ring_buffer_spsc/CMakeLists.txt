@@ -1,0 +1,8 @@
+add_library(ring_buffer_spsc src/ring_buffer_spsc.cpp)
+target_include_directories(ring_buffer_spsc PUBLIC include)
+target_compile_features(ring_buffer_spsc PUBLIC cxx_std_20)
+
+add_executable(ring_buffer_spsc_test test/test_ring_buffer_spsc.cpp)
+target_link_libraries(ring_buffer_spsc_test PRIVATE ring_buffer_spsc gtest_main)
+add_test(NAME ring_buffer_spsc_test COMMAND ring_buffer_spsc_test)
+set_tests_properties(ring_buffer_spsc_test PROPERTIES LABELS "exercise13;tsan;stress" TIMEOUT 300)

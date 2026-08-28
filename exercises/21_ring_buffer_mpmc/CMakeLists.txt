@@ -1,0 +1,8 @@
+add_library(ring_buffer_mpmc src/ring_buffer_mpmc.cpp)
+target_include_directories(ring_buffer_mpmc PUBLIC include)
+target_compile_features(ring_buffer_mpmc PUBLIC cxx_std_20)
+
+add_executable(ring_buffer_mpmc_test test/test_ring_buffer_mpmc.cpp)
+target_link_libraries(ring_buffer_mpmc_test PRIVATE ring_buffer_mpmc gtest_main)
+add_test(NAME ring_buffer_mpmc_test COMMAND ring_buffer_mpmc_test)
+set_tests_properties(ring_buffer_mpmc_test PROPERTIES LABELS "exercise21;tsan;stress" TIMEOUT 300)
