@@ -1,0 +1,6 @@
+add_subdirectory(38_linked_list)
+add_subdirectory(39_two_pointer)
+add_subdirectory(40_sliding_window)
+add_subdirectory(41_binary_search_tree)
+add_subdirectory(42_graph_search)
+add_subdirectory(43_heap)

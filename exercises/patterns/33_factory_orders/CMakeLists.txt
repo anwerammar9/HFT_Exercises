@@ -1,0 +1,8 @@
+add_library(factory_orders src/factory_orders.cpp)
+target_include_directories(factory_orders PUBLIC include)
+target_compile_features(factory_orders PUBLIC cxx_std_20)
+
+add_executable(factory_orders_test test/test_factory_orders.cpp)
+target_link_libraries(factory_orders_test PRIVATE factory_orders gtest_main)
+add_test(NAME factory_orders_test COMMAND factory_orders_test)
+set_tests_properties(factory_orders_test PROPERTIES LABELS "exercise33" TIMEOUT 300)

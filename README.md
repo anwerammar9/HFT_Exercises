@@ -5,14 +5,18 @@ interview space: synchronization primitives, allocators, lock-free queues and
 stacks, container re-implementations, thread coordination, in-memory
 market-data structures, a matching engine, an object pool, and an
 order/execution domain layer (state machine, risk, throttling, sequencing, L2
-book building, TWAP/VWAP, PnL, idempotent gateway). Each exercise is its own
+book building, TWAP/VWAP, PnL, idempotent gateway), the classic design
+patterns behind order/execution plumbing (factory, strategy, observer,
+command, chain of responsibility), and the classic algorithms and data
+structures every coding screen revisits (linked lists, two pointers, sliding
+window, binary search trees, graph search, heaps). Each exercise is its own
 CMake target + GoogleTest suite, so `ctest -R <name>` runs it in isolation.
 
-> Exercises are numbered **01–26 in rough difficulty order** (easy → hard):
+> Exercises are numbered **01–43 in rough difficulty order** (easy → hard):
 > pure-logic/domain building blocks first, then allocators and containers,
 > then concurrency primitives and coordination, then the heavier lock-free
-> structures and concurrent maps, finishing with the matching-engine or an
-> Object capstone.
+> structures and concurrent maps, finishing with the matching-engine capstone,
+> a design-patterns theme, and a closing algorithms/data-structures theme.
 
 > **Status — practice mode:** the implementations have been **removed** from the
 > C++ files and replaced with `TODO(anwer)` stubs. The full reference solution
@@ -30,19 +34,28 @@ CMake target + GoogleTest suite, so `ctest -R <name>` runs it in isolation.
 ## Layout
 
 ```
-exercises/
-  easy →
-  01_tick_statistics, 02_order_state_machine, 03_twap_vwap_slicer,
-  04_position_tracker, 05_token_bucket, 06_sequenced_stream,
-  07_arena_allocator, 08_memory_pool_allocator, 09_lru_cache,
-  10_timer_wheel,
-  ↗ primitives & coordination
-  11_spinlock, 12_seqlock, 13_ring_buffer_spsc, 14_thread_pool,
-  15_dynamic_vector, 16_order_gateway, 17_risk_gate, 18_l2_order_book,
-  19_order_book,
-  ↗ heavier lock-free + capstones
-  20_priority_queue, 21_ring_buffer_mpmc, 22_lockfree_stack,
-  23_object_pool, 24_hash_map, 25_symbol_table, 26_matching_engine
+exercises/                              # grouped by theme
+  logic/                                # pure computation & scheduling logic (easy)
+    01_tick_statistics, 03_twap_vwap_slicer, 04_position_tracker,
+    05_token_bucket, 06_sequenced_stream, 10_timer_wheel
+  domain/                               # order / trading domain layer
+    02_order_state_machine, 16_order_gateway, 17_risk_gate,
+    18_l2_order_book, 19_order_book, 26_matching_engine, 30_ohlcv_aggregator
+  memory/                               # allocators
+    07_arena_allocator, 08_memory_pool_allocator
+  containers/                           # container & codec re-implementations
+    09_lru_cache, 15_dynamic_vector, 20_priority_queue, 24_hash_map,
+    32_varint_codec
+  concurrency/                          # primitives, coordination, lock-free
+    11_spinlock, 12_seqlock, 13_ring_buffer_spsc, 14_thread_pool,
+    21_ring_buffer_mpmc, 22_lockfree_stack, 23_object_pool, 25_symbol_table,
+    27_semaphore, 28_spin_barrier, 29_mcs_lock, 31_serial_executor
+  patterns/                              # design patterns (HFT flavor)
+    33_factory_orders, 34_strategy_execution, 35_observer_market_data,
+    36_command_order_entry, 37_chain_risk
+  algorithms/                            # coding-screen algorithms & DS
+    38_linked_list, 39_two_pointer, 40_sliding_window, 41_binary_search_tree,
+    42_graph_search, 43_heap
 ```
 
 Each has `TASK.md` (the problem statement — what to implement and what the
@@ -108,6 +121,23 @@ ctest --test-dir build -N                           # list suites
 | `hash_map_test` | 24 | containers | Open-addressed HashMap (unordered_map clone, tombstones) |
 | `symbol_table_test` | 25 | lock-free | Thread-safe two-way symbol<->id interning |
 | `matching_engine_test` | 26 | capstone | Price-time priority order book |
+| `semaphore_test` | 27 | coordination | Counting semaphore (mutex + condition_variable) |
+| `spin_barrier_test` | 28 | coordination | Sense-reversing N-thread spin barrier |
+| `mcs_lock_test` | 29 | lock-free | MCS queue lock (scalable, no spinning on a shared cacheline) |
+| `ohlcv_aggregator_test` | 30 | domain | Trade → OHLCV candle aggregation (bucketed, gap candles) |
+| `serial_executor_test` | 31 | coordination | Serialized task executor: FIFO, one-at-a-time, drain/shutdown |
+| `varint_codec_test` | 32 | containers | LEB128 varint + length-prefixed frame codec |
+| `factory_orders_test` | 33 | patterns | Venue order factories: integer tick quantization, strict venue rules |
+| `strategy_execution_test` | 34 | patterns | Strategy pattern: pluggable order execution (TWAP/VWAP/Sniper) |
+| `observer_market_data_test` | 35 | patterns | Observer: symbol-filtered market-data fan-out, safe unsubscribe |
+| `command_order_entry_test` | 36 | patterns | Command: order-entry actions as executable/undoable log |
+| `chain_risk_test` | 37 | patterns | Chain of responsibility: pre-trade risk gate pipeline |
+| `linked_list_test` | 38 | algorithms | Intrusive doubly-linked list: O(1) erase(it), reverse, deep copy |
+| `two_pointer_test` | 39 | algorithms | Two-pointer: sum pairs, merge, dedup, triple-sum, max-area, palindrome |
+| `sliding_window_test` | 40 | algorithms | Sliding window: monotonic-queue max, sums, min-subarray, distinct-run |
+| `binary_search_tree_test` | 41 | algorithms | BST: insert/erase (0/1/2-child), min/max, nearest, in-order |
+| `graph_search_test` | 42 | algorithms | BFS/DFS order, hop distances, components, cycle detection |
+| `heap_test` | 43 | algorithms | Implicit heap: build-from-range O(n), erase_at, replace, heapsort |
 
 ### Sanitizers (off by default)
 
@@ -117,7 +147,9 @@ cmake -S . -B build-asan -DENABLE_ASAN=ON
 ```
 
 The concurrency suites carry the ctest labels `tsan;stress`
-(02, 05, 13, 16, 17, 21, 22, 23, 25); the rest are plain `exerciseNN`. Do not
+(02, 05, 13, 16, 17, 21, 22, 23, 25, 27, 28, 29, 31) and exercise 35's observer
+carries `tsan;stress` (35); the rest are
+plain `exerciseNN`. Do not
 combine TSan and ASan (asserted at configure time). `ENABLE_WERROR` is also
 available. The optional spinlock micro-benchmark builds with
 `-DBUILD_SPINLOCK_BENCH=ON`.
@@ -223,5 +255,99 @@ available. The optional spinlock micro-benchmark builds with
   `kThreads × 1000` distinct symbols and checks uniqueness + both directions.
 - **26 Matching engine** — fills at the *resting* price, FIFO per level,
   multi-level sweeps in one `add_order` call.
+- **27 Semaphore** — a budget counter, not a lock: any thread may `release()`,
+  `acquire()` blocks (via `condition_variable`, so spurious wakeups are
+  handled) until a token exists. `try_acquire()` never consumes on failure;
+  `count()` takes the lock so it's TSan-clean. Tests prove
+  at-most-`kLimit` holders under contention.
+- **28 Spin barrier** — sense-reversing N-thread barrier (the tests treat N=1,
+  N=3, N=6; `generation()` counts completed rounds). `wait()` spins with
+  `yield()`; a plain no-op stub lets threads "pass through" immediately, which
+  fails the arrival-counting tests fast.
+- **29 MCS lock** — queue-based spinlock: each waiter spins on its own
+  `locked_` flag (contention never hammers one cacheline). Unlock retry-CASes
+  the tail if a successor is about to enqueue; the "lost" unlock spins until
+  `next_` appears. Tests include single-node reuse across many rounds.
+- **30 OHLCV aggregator** — `add_trade` buckets by `ts/bucket_ms`; the timeline
+  starts at bucket 0 with **leading empty candles**, skipped buckets are
+  finalized as empty candles, stale (older-bucket) trades are ignored, and
+  `roll()` finalizes the current bucket while keeping the same bucket open
+  (a same-bucket trade after roll opens a fresh candle at the same `open_time`).
+- **31 Serial executor** — fixed single worker, FIFO task order,
+  `submit()` returns `std::future` and throws `logic_error` after `shutdown()`.
+  Tests verify exactly-one-at-a-time (`peak == 1`), exception propagation (the
+  worker survives), reentrant submit-from-task, `drain()`, idempotent
+  shutdown, and that the destructor runs every submitted task.
+- **32 Varint codec** — LEB128 varints (max 10 bytes; last byte ≤ 0x01) plus a
+  bare-bones network frame codec: `[4-byte little-endian payload length][varint
+  client_uid][payload]`. Decoders reject truncated/overflowing input and never
+  partial-write on a too-small buffer.
+- **33 Factory** — a `VenueOrderFactory` per venue: `IexOrderFactory` ticks at
+  10 units (`price % 10000 == 0`), `CmeOrderFactory` at 2.5 units
+  (`% 2500 == 0`); quantization is integer round-half-up `(p + tick/2)/tick*tick`
+  so no float noise leaks into prices. Strict venue rules: `kMarket` forces
+  `price == 0`, `kStop` can never be `post_only`. `MakeOrderFactory(name)` is
+  case-insensitive and throws on unknown venues (the dispatch the strategy
+  exercise pairs with).
+- **34 Strategy** — `ExecutionEngine` owns a `unique_ptr<ExecutionStrategy>`
+  swapped at runtime via `make_strategy(name, seed, child_size)`: TWAP emits
+  `base + remainder` on the **last** slice; VWAP uses **largest-remainder**
+  rounding of weighted fractions (ties → earliest index) so children sum
+  *exactly* to the parent; Sniper emits one full-size child at slot 0. The
+  engine (not the strategy) drives the clock and keeps per-slot composition
+  state. Replacing the object under the pointer is the pattern.
+- **35 Observer** — a topic with `subscribe`/`unsubscribe` returning stable
+  slot ids; `publish(feed, msg)` updates *every* subscriber whose symbol filter
+  matches (copy-under-lock, callbacks outside the lock). Two feeds, two
+  subscribers, symbol-independent symbols + independent feed history = exactly
+  four distinct callback sequences; the stateful observer event orders delta
+  subscriptions and sees exactly the events for its feed/symbol. A throwing
+  subscriber is dropped via its slot id without wedging later subscribers.
+- **36 Command** — every `New`/`Modify`/`Cancel` is a `Command` object with
+  `execute()` + `undo()` (plus a stable `describe()`); `ExecuteCommandProcessor`
+  submits then logs **only successes** in LIFO order, and `undo_last()` reverses
+  just the newest applied command. Modify/Cancel snapshot their prior state
+  *inside execute()*, so undoing a modify → cancel chain lands back on the
+  original fields (the discriminator test).
+- **37 Chain of responsibility** — `RiskHandler::handle` is the non-virtual
+  chain algorithm in the base class (run check, short-circuit on rejection,
+  forward to `next_`, accept at the tail); concretes only implement `do_check`.
+  A `RiskChain` facade appends handlers in order. `MaxNotionalHandler` is the
+  stateful node: it accrues `price·qty` on passes (never on rejects) and is
+  what makes the pipeline order- and state-sensitive.
+- **38 Linked list** — intrusive sentinels (a plain `Link` for `head_`/`tail_`,
+  payload `Node : Link`); `begin() == end()` on empty with **zero allocation**;
+  `erase(it)` splices out in O(1) with no search and returns the successor
+  (the resting-order cancel cost model); `front()`/`back()` throw
+  `std::out_of_range` when empty (documented deviation from `std::list` UB);
+  `reverse()` swaps `prev`/`next` per node then re-attaches the sentinels;
+  move/swap `steal()` the payload region instead of cross-linking two
+  containers' sentinels.
+- **39 Two-pointer** — opposing-pointer pair sweep (`lo`/`hi`, `lo<hi`
+  guarantees distinct positions), cross-array pair with `b` walking backward,
+  `merge_sorted` tie-ordered `<=` (a before b), in-place writer/reader dedupe,
+  triple-sum = sort-a-copy + fixed first + inner pair sweep, `max_area` only
+  ever advances the shorter bar, and strict palindrome.
+- **40 Sliding window** — fixed-window max via a **monotonic deque of indices**
+  (pop back while `≤ value`), rolling `int64` sums with the leaving-left
+  subtract, `k==0` for `max_average_window` throws `std::invalid_argument`;
+  variable-window grow-right/shrink-left for the shortest sum-≥-target span and
+  the longest ≤-k-distinct run.
+- **41 Binary search tree** — recursive helpers pass the slot **by reference**
+  (`Node*&`) so splicing is trivial; 2-child erase overwrites with the in-order
+  successor and splices it out; `nearest` is a single directional walk tracking
+  `|key - stored|` (ties → smaller key); `min`/`max` throw on empty;
+  `in_order()` is left/self/right.
+- **42 Graph search** — sorted `std::set` adjacency for deterministic order;
+  BFS marks seen **at enqueue**; DFS pushes neighbors in **reverse** to match
+  recursive first-visit order; `bfs_distance` stamps `dist[]` initialised to
+  −1 (unreachable stays −1); undirected `has_cycle` = DFS back edge where the
+  seen neighbor is **not the parent** (self-loops count); duplicate edges
+  collapse and a self-loop counts once in `edge_count_`.
+- **43 Heap** — build-from-range heapifies O(n) by sifting **only the internal
+  nodes** down; `erase_at` = swap-with-last then sift-up *and* sift-down
+  (one is a no-op; bad index throws); `replace` = overwrite root + sift-down in
+  one round-trip; `array()` lets tests assert `std::is_heap` directly;
+  `heapsort` = build max-heap + pop-max-to-back over the shrinking prefix.
 
 GoogleTest is fetched via `FetchContent` on first configure (requires network).

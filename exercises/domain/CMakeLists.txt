@@ -1,0 +1,7 @@
+add_subdirectory(02_order_state_machine)
+add_subdirectory(16_order_gateway)
+add_subdirectory(17_risk_gate)
+add_subdirectory(18_l2_order_book)
+add_subdirectory(19_order_book)
+add_subdirectory(26_matching_engine)
+add_subdirectory(30_ohlcv_aggregator)

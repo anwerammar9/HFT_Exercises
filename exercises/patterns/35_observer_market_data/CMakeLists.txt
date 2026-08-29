@@ -1,0 +1,9 @@
+add_library(observer_market_data src/observer_market_data.cpp)
+target_include_directories(observer_market_data PUBLIC include)
+target_compile_features(observer_market_data PUBLIC cxx_std_20)
+
+find_package(Threads REQUIRED)
+add_executable(observer_market_data_test test/test_observer_market_data.cpp)
+target_link_libraries(observer_market_data_test PRIVATE observer_market_data Threads::Threads gtest_main)
+add_test(NAME observer_market_data_test COMMAND observer_market_data_test)
+set_tests_properties(observer_market_data_test PROPERTIES LABELS "exercise35;tsan;stress" TIMEOUT 300)

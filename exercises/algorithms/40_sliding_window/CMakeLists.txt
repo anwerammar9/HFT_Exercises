@@ -1,0 +1,8 @@
+add_library(sliding_window src/sliding_window.cpp)
+target_include_directories(sliding_window PUBLIC include)
+target_compile_features(sliding_window PUBLIC cxx_std_20)
+
+add_executable(sliding_window_test test/test_sliding_window.cpp)
+target_link_libraries(sliding_window_test PRIVATE sliding_window gtest_main)
+add_test(NAME sliding_window_test COMMAND sliding_window_test)
+set_tests_properties(sliding_window_test PROPERTIES LABELS "exercise40" TIMEOUT 300)

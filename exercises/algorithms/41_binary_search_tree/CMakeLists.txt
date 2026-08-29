@@ -1,0 +1,8 @@
+add_library(binary_search_tree src/binary_search_tree.cpp)
+target_include_directories(binary_search_tree PUBLIC include)
+target_compile_features(binary_search_tree PUBLIC cxx_std_20)
+
+add_executable(binary_search_tree_test test/test_binary_search_tree.cpp)
+target_link_libraries(binary_search_tree_test PRIVATE binary_search_tree gtest_main)
+add_test(NAME binary_search_tree_test COMMAND binary_search_tree_test)
+set_tests_properties(binary_search_tree_test PROPERTIES LABELS "exercise41" TIMEOUT 300)

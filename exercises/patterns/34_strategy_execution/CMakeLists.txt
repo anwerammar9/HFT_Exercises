@@ -1,0 +1,8 @@
+add_library(strategy_execution src/strategy_execution.cpp)
+target_include_directories(strategy_execution PUBLIC include)
+target_compile_features(strategy_execution PUBLIC cxx_std_20)
+
+add_executable(strategy_execution_test test/test_strategy_execution.cpp)
+target_link_libraries(strategy_execution_test PRIVATE strategy_execution gtest_main)
+add_test(NAME strategy_execution_test COMMAND strategy_execution_test)
+set_tests_properties(strategy_execution_test PROPERTIES LABELS "exercise34" TIMEOUT 300)

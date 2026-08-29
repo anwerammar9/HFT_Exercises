@@ -1,0 +1,5 @@
+add_subdirectory(33_factory_orders)
+add_subdirectory(34_strategy_execution)
+add_subdirectory(35_observer_market_data)
+add_subdirectory(36_command_order_entry)
+add_subdirectory(37_chain_risk)

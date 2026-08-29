@@ -1,0 +1,8 @@
+add_library(ohlcv_aggregator src/ohlcv_aggregator.cpp)
+target_include_directories(ohlcv_aggregator PUBLIC include)
+target_compile_features(ohlcv_aggregator PUBLIC cxx_std_20)
+
+add_executable(ohlcv_aggregator_test test/test_ohlcv_aggregator.cpp)
+target_link_libraries(ohlcv_aggregator_test PRIVATE ohlcv_aggregator gtest_main)
+add_test(NAME ohlcv_aggregator_test COMMAND ohlcv_aggregator_test)
+set_tests_properties(ohlcv_aggregator_test PROPERTIES LABELS "exercise30" TIMEOUT 300)

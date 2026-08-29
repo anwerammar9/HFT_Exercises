@@ -1,0 +1,8 @@
+add_library(serial_executor src/serial_executor.cpp)
+target_include_directories(serial_executor PUBLIC include)
+target_compile_features(serial_executor PUBLIC cxx_std_20)
+
+add_executable(serial_executor_test test/test_serial_executor.cpp)
+target_link_libraries(serial_executor_test PRIVATE serial_executor gtest_main)
+add_test(NAME serial_executor_test COMMAND serial_executor_test)
+set_tests_properties(serial_executor_test PROPERTIES LABELS "exercise31;tsan;stress" TIMEOUT 300)

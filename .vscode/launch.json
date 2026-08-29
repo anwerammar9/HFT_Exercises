@@ -1,12 +1,11 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "Debug 01_spinlock_test",
+            "name": "Debug 11_spinlock_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/01_spinlock/spinlock_test",
+            "program": "${workspaceFolder}/build/exercises/concurrency/11_spinlock/spinlock_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -24,10 +23,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug 02_seqlock_test",
+            "name": "Debug 12_seqlock_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/02_seqlock/seqlock_test",
+            "program": "${workspaceFolder}/build/exercises/concurrency/12_seqlock/seqlock_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -45,10 +44,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug 03_ring_buffer_spsc_test",
+            "name": "Debug 13_ring_buffer_spsc_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/03_ring_buffer_spsc/ring_buffer_spsc_test",
+            "program": "${workspaceFolder}/build/exercises/concurrency/13_ring_buffer_spsc/ring_buffer_spsc_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -66,10 +65,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug 04_ring_buffer_mpmc_test",
+            "name": "Debug 21_ring_buffer_mpmc_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/04_ring_buffer_mpmc/ring_buffer_mpmc_test",
+            "program": "${workspaceFolder}/build/exercises/concurrency/21_ring_buffer_mpmc/ring_buffer_mpmc_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -87,10 +86,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug 05_lockfree_stack_test",
+            "name": "Debug 22_lockfree_stack_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/05_lockfree_stack/lockfree_stack_test",
+            "program": "${workspaceFolder}/build/exercises/concurrency/22_lockfree_stack/lockfree_stack_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -108,10 +107,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug 06_thread_pool_test",
+            "name": "Debug 14_thread_pool_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/06_thread_pool/thread_pool_test",
+            "program": "${workspaceFolder}/build/exercises/concurrency/14_thread_pool/thread_pool_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -129,10 +128,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug 07_pool_allocator_test",
+            "name": "Debug 08_pool_allocator_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/07_memory_pool_allocator/pool_allocator_test",
+            "program": "${workspaceFolder}/build/exercises/memory/08_memory_pool_allocator/pool_allocator_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -150,10 +149,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug 08_lru_cache_test",
+            "name": "Debug 09_lru_cache_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/08_lru_cache/lru_cache_test",
+            "program": "${workspaceFolder}/build/exercises/containers/09_lru_cache/lru_cache_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -171,10 +170,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug 09_timer_wheel_test",
+            "name": "Debug 10_timer_wheel_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/09_timer_wheel/timer_wheel_test",
+            "program": "${workspaceFolder}/build/exercises/logic/10_timer_wheel/timer_wheel_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -192,10 +191,10 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Debug 10_matching_engine_test",
+            "name": "Debug 26_matching_engine_test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/exercises/10_matching_engine/matching_engine_test",
+            "program": "${workspaceFolder}/build/exercises/domain/26_matching_engine/matching_engine_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

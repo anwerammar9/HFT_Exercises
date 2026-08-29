@@ -1,0 +1,8 @@
+add_library(command_order_entry src/command_order_entry.cpp)
+target_include_directories(command_order_entry PUBLIC include)
+target_compile_features(command_order_entry PUBLIC cxx_std_20)
+
+add_executable(command_order_entry_test test/test_command_order_entry.cpp)
+target_link_libraries(command_order_entry_test PRIVATE command_order_entry gtest_main)
+add_test(NAME command_order_entry_test COMMAND command_order_entry_test)
+set_tests_properties(command_order_entry_test PROPERTIES LABELS "exercise36" TIMEOUT 300)
