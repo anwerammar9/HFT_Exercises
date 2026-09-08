@@ -2,12 +2,32 @@
 
 ## The problem (in plain words)
 
-A price/volume series is a stream, and window questions are the meat of
-market-data math: *what was the widest spread in the last k ticks*, *what is
-the short-term max average*, *how short a run reaches a notional target*.
-Learn the two window idioms — **fixed-size** (add right, drop left) and
-**variable-size** (grow right, shrink left while a constraint holds) — and the
-**monotonic queue** trick that makes the fixed-size *maximum* O(n) overall.
+Implement five sliding-window functions that operate on a stream of integer
+values (prices, volumes, etc.):
+
+1. **Fixed-size window maximum** — given a window size `k`, return the maximum
+   value for every contiguous window of size `k` in the input. Use a
+   **monotonic deque** to achieve O(n) total.
+
+2. **Fixed-size window sums** — given a window size `k`, return the sum of
+   each contiguous window of size `k` as `int64`.
+
+3. **Maximum average in a window** — find the maximum average among all
+   contiguous windows of size `k`.
+
+4. **Shortest subarray with sum ≥ target** — find the length of the shortest
+   contiguous subarray whose sum is at least `target` (variable-size window
+   that grows/shrinks).
+
+5. **Longest run with at most k distinct values** — find the length of the
+   longest contiguous subarray containing at most `k` distinct values
+   (variable-size window with a constraint).
+
+**Two key window patterns to practice:**
+- **Fixed-size:** slide one element at a time — add the new right element,
+  drop the old left element.
+- **Variable-size:** grow the right edge until a condition is met, then shrink
+  the left edge while the condition still holds.
 
 ## Requirements (what the tests check)
 

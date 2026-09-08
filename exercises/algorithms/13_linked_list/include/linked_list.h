@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <iterator>
 #include <stdexcept>
+#include <utility>
 
 // From-scratch doubly-linked list over an intrusive link (head/tail sentinels
 // are plain Link nodes; payload nodes derive Link). The whole point is pointer
@@ -23,13 +24,66 @@
 //   - copy is DEEP (mutating the copy never touches the original); move leaves
 //     the source empty; the destructor frees every node.
 //
-// TODO(anwer): implement the real list (see SOLUTION.md). The stub is an
-// always-empty sentinel list whose mutators are no-ops and whose iterators
-// deref a static dummy, so every mutation/reverse/erase/copy assertion fails
-// RED without allocating, dereferencing invalid memory, or crashing.
+// Implementation: the head_/tail_ sentinels are plain Links owned by the
+// container; begin() is head_.next, end() is &tail_, so an empty list costs
+// zero allocations. Move/swap relocate the payload region into the container's
+// OWN sentinels — never cross-link another object's sentinels (they live inside
+// the objects and would corrupt empty lists).
 
 template <typename T>
 class LinkedList {
+ private:
+  struct Link {
+    Link* prev;
+    Link* next;
+    Link() noexcept : prev(this), next(this) {}
+  };
+
+  struct Node : Link {
+    T value;
+    explicit Node(const T& v) : value(v) {}
+    explicit Node(T&& v) : value(std::move(v)) {}
+  };
+
+  void check_nonempty() const {
+    if (size_ == 0) throw std::out_of_range("LinkedList::front/back on empty list");
+  }
+
+  template <typename U>
+  void push_back_impl(U&& v) {
+    Node* n = new Node(std::forward<U>(v));
+    n->prev = tail_.prev;
+    n->next = &tail_;
+    tail_.prev->next = n;
+    tail_.prev = n;
+    ++size_;
+  }
+
+  template <typename U>
+  void push_front_impl(U&& v) {
+    Node* n = new Node(std::forward<U>(v));
+    n->next = head_.next;
+    n->prev = &head_;
+    head_.next->prev = n;
+    head_.next = n;
+    ++size_;
+  }
+
+  // Relocate src's whole payload region into *this (which must be empty),
+  // then leave src empty. The sentinels never move — they stay with their own
+  // container, so this never double-links across objects.
+  void adopt_body(LinkedList& src) noexcept {
+    if (src.head_.next == &src.tail_) return;
+    head_.next = src.head_.next;
+    head_.next->prev = &head_;
+    tail_.prev = src.tail_.prev;
+    tail_.prev->next = &tail_;
+    size_ = src.size_;
+    src.head_.next = &src.tail_;
+    src.tail_.prev = &src.head_;
+    src.size_ = 0;
+  }
+
  public:
   class iterator {
    public:
@@ -39,17 +93,32 @@ class LinkedList {
     using pointer = T*;
     using reference = T&;
 
-T& operator*() const {
-      static T stub{};
-      return stub;
+    iterator() noexcept : ptr_(nullptr) {}
+    explicit iterator(Link* p) noexcept : ptr_(p) {}
+
+    reference operator*() const { return static_cast<Node*>(ptr_)->value; }
+    pointer operator->() const { return &(operator*()); }
+
+    iterator& operator++() noexcept { ptr_ = ptr_->next; return *this; }
+    iterator operator++(int) noexcept {
+      iterator t(*this);
+      ++(*this);
+      return t;
     }
-    T* operator->() const { return &(operator*()); }
-    iterator& operator++() { return *this; }
-    iterator operator++(int) { return *this; }
-    iterator& operator--() { return *this; }
-    iterator operator--(int) { return *this; }
-    bool operator==(const iterator&) const { return true; }
-    bool operator!=(const iterator&) const { return false; }
+    iterator& operator--() noexcept { ptr_ = ptr_->prev; return *this; }
+    iterator operator--(int) noexcept {
+      iterator t(*this);
+      --(*this);
+      return t;
+    }
+
+    bool operator==(const iterator& o) const noexcept { return ptr_ == o.ptr_; }
+    bool operator!=(const iterator& o) const noexcept { return ptr_ != o.ptr_; }
+
+   private:
+    friend class LinkedList;
+    friend class const_iterator;
+    Link* ptr_;
   };
 
   class const_iterator {
@@ -60,52 +129,174 @@ T& operator*() const {
     using pointer = const T*;
     using reference = const T&;
 
-    const T& operator*() const {
-      static T stub{};
-      return stub;
+    const_iterator() noexcept : ptr_(nullptr) {}
+    explicit const_iterator(const Link* p) noexcept : ptr_(p) {}
+    const_iterator(const iterator& it) noexcept : ptr_(it.ptr_) {}
+
+    reference operator*() const { return static_cast<const Node*>(ptr_)->value; }
+    pointer operator->() const { return &(operator*()); }
+
+    const_iterator& operator++() noexcept { ptr_ = ptr_->next; return *this; }
+    const_iterator operator++(int) noexcept {
+      const_iterator t(*this);
+      ++(*this);
+      return t;
     }
-    const T* operator->() const { return &(operator*()); }
-    const_iterator& operator++() { return *this; }
-    const_iterator operator++(int) { return *this; }
-    const_iterator& operator--() { return *this; }
-    const_iterator operator--(int) { return *this; }
-    bool operator==(const const_iterator&) const { return true; }
-    bool operator!=(const const_iterator&) const { return false; }
+    const_iterator& operator--() noexcept { ptr_ = ptr_->prev; return *this; }
+    const_iterator operator--(int) noexcept {
+      const_iterator t(*this);
+      --(*this);
+      return t;
+    }
+
+    bool operator==(const const_iterator& o) const noexcept {
+      return ptr_ == o.ptr_;
+    }
+    bool operator!=(const const_iterator& o) const noexcept {
+      return ptr_ != o.ptr_;
+    }
+
+   private:
+    friend class LinkedList;
+    const Link* ptr_;
   };
 
-  LinkedList() = default;
-  LinkedList(const LinkedList&) = default;
-  LinkedList(LinkedList&&) = default;
-  LinkedList& operator=(const LinkedList&) = default;
-  LinkedList& operator=(LinkedList&&) = default;
-  ~LinkedList() = default;
+  LinkedList() {
+    head_.next = &tail_;
+    tail_.prev = &head_;
+  }
+  LinkedList(const LinkedList& other) {
+    head_.next = &tail_;
+    tail_.prev = &head_;
+    for (const T& v : other) push_back(v);
+  }
+  LinkedList(LinkedList&& other) noexcept {
+    head_.next = &tail_;
+    tail_.prev = &head_;
+    adopt_body(other);
+  }
+  LinkedList& operator=(const LinkedList& other) {
+    if (this != &other) {
+      LinkedList tmp(other);
+      swap(tmp);
+    }
+    return *this;
+  }
+  LinkedList& operator=(LinkedList&& other) noexcept {
+    if (this != &other) {
+      clear();
+      adopt_body(other);
+    }
+    return *this;
+  }
+  ~LinkedList() { clear(); }
 
-  void swap(LinkedList&) noexcept {}
+  void swap(LinkedList& other) noexcept {
+    if (head_.next == &tail_) {
+      adopt_body(other);
+    } else if (other.head_.next == &other.tail_) {
+      other.adopt_body(*this);
+    } else {
+      LinkedList tmp;
+      tmp.adopt_body(*this);
+      adopt_body(other);
+      other.adopt_body(tmp);
+    }
+  }
 
-  std::size_t size() const noexcept { return 0; }
-  bool empty() const noexcept { return true; }
+  std::size_t size() const noexcept { return size_; }
+  bool empty() const noexcept { return size_ == 0; }
 
-  T& front() { throw std::logic_error("not implemented"); }
-  const T& front() const { throw std::logic_error("not implemented"); }
-  T& back() { throw std::logic_error("not implemented"); }
-  const T& back() const { throw std::logic_error("not implemented"); }
+  T& front() {
+    check_nonempty();
+    return static_cast<Node*>(head_.next)->value;
+  }
+  const T& front() const {
+    check_nonempty();
+    return static_cast<const Node*>(head_.next)->value;
+  }
+  T& back() {
+    check_nonempty();
+    return static_cast<Node*>(tail_.prev)->value;
+  }
+  const T& back() const {
+    check_nonempty();
+    return static_cast<const Node*>(tail_.prev)->value;
+  }
 
-  void push_back(const T&) {}
-  void push_back(T&&) {}
-  void push_front(const T&) {}
-  void push_front(T&&) {}
-  void pop_front() {}
-  void pop_back() {}
+  void push_back(const T& v) { push_back_impl(v); }
+  void push_back(T&& v) { push_back_impl(std::move(v)); }
+  void push_front(const T& v) { push_front_impl(v); }
+  void push_front(T&& v) { push_front_impl(std::move(v)); }
 
-  void clear() noexcept {}
+  void pop_front() {
+    if (empty()) return;
+    Node* n = static_cast<Node*>(head_.next);
+    head_.next = n->next;
+    n->next->prev = &head_;
+    delete n;
+    --size_;
+  }
+  void pop_back() {
+    if (empty()) return;
+    Node* n = static_cast<Node*>(tail_.prev);
+    n->prev->next = &tail_;
+    tail_.prev = n->prev;
+    delete n;
+    --size_;
+  }
 
-  iterator erase(iterator) { return iterator{}; }
-  void reverse() {}
+  void clear() noexcept {
+    Link* cur = head_.next;
+    while (cur != &tail_) {
+      Link* nxt = cur->next;
+      delete static_cast<Node*>(cur);
+      cur = nxt;
+    }
+    head_.next = &tail_;
+    tail_.prev = &head_;
+    size_ = 0;
+  }
 
-  iterator begin() { return iterator{}; }
-  iterator end() { return iterator{}; }
-  const_iterator begin() const { return const_iterator{}; }
-  const_iterator end() const { return const_iterator{}; }
+  // O(1) erase WITHOUT searching. Returns the iterator to the successor, so
+  // the erase-loop idiom `it = l.erase(it);` works. Erasing end() is a no-op.
+  iterator erase(iterator it) {
+    if (it.ptr_ == &tail_) return end();
+    Link* n = it.ptr_;
+    Link* succ = n->next;
+    n->prev->next = succ;
+    succ->prev = n->prev;
+    delete static_cast<Node*>(n);
+    --size_;
+    return iterator(succ);
+  }
+
+  // In-place pointer rewiring: every payload node swaps prev/next, then the
+  // sentinels re-attach to the former last/first node. O(n), no allocation.
+  void reverse() {
+    if (head_.next == &tail_) return;
+    Link* cur = head_.next;
+    while (cur != &tail_) {
+      std::swap(cur->prev, cur->next);
+      cur = cur->prev;
+    }
+    Link* first = head_.next;
+    Link* last = tail_.prev;
+    head_.next = last;
+    last->prev = &head_;
+    tail_.prev = first;
+    first->next = &tail_;
+  }
+
+  iterator begin() { return iterator(head_.next); }
+  iterator end() { return iterator(&tail_); }
+  const_iterator begin() const { return const_iterator(head_.next); }
+  const_iterator end() const { return const_iterator(&tail_); }
+
+ private:
+  Link head_;
+  Link tail_;
+  std::size_t size_ = 0;
 };
 
 #endif  // EXERCISE38_LINKED_LIST_H_
