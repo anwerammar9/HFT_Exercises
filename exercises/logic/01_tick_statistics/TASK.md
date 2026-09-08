@@ -1,4 +1,4 @@
-# Exercise 01 — Tick Statistics (Task)
+# Exercise logic/01_tick_statistics (ex01) — Tick Statistics (Task)
 
 ## The problem (in plain words)
 

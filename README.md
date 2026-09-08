@@ -12,11 +12,15 @@ structures every coding screen revisits (linked lists, two pointers, sliding
 window, binary search trees, graph search, heaps). Each exercise is its own
 CMake target + GoogleTest suite, so `ctest -R <name>` runs it in isolation.
 
-> Exercises are numbered **01–43 in rough difficulty order** (easy → hard):
-> pure-logic/domain building blocks first, then allocators and containers,
-> then concurrency primitives and coordination, then the heavier lock-free
-> structures and concurrent maps, finishing with the matching-engine capstone,
-> a design-patterns theme, and a closing algorithms/data-structures theme.
+> Exercises carry a global suite number **ex01–ex43 in rough difficulty order**
+> (easy → hard): pure-logic/domain building blocks first, then allocators and
+> containers, then concurrency primitives and coordination, then the heavier
+> lock-free structures and concurrent maps, finishing with the matching-engine
+> capstone, a design-patterns theme, and a closing algorithms/data-structures
+> theme. On disk each theme numbers its own folders **01..NN** (e.g.
+> `concurrency/01_spinlock` is suite ex11, `algorithms/01_linked_list` is
+> suite ex38); the global number is what `TASK.md`, ctest `LABELS`, and
+> include guards use.
 
 > **Status — practice mode:** the implementations have been **removed** from the
 > C++ files and replaced with `TODO(anwer)` stubs. The full reference solution
@@ -34,28 +38,36 @@ CMake target + GoogleTest suite, so `ctest -R <name>` runs it in isolation.
 ## Layout
 
 ```
-exercises/                              # grouped by theme
+exercises/                              # grouped by theme; each theme numbers
+                                        # its exercises 01..NN (category-local).
+                                        # The global 01–43 suite number lives in
+                                        # TASK.md / ctest LABELS / include guards.
   logic/                                # pure computation & scheduling logic (easy)
-    01_tick_statistics, 03_twap_vwap_slicer, 04_position_tracker,
-    05_token_bucket, 06_sequenced_stream, 10_timer_wheel
+    01_tick_statistics (ex01), 02_twap_vwap_slicer (ex03),
+    03_position_tracker (ex04), 04_token_bucket (ex05),
+    05_sequenced_stream (ex06), 06_timer_wheel (ex10)
   domain/                               # order / trading domain layer
-    02_order_state_machine, 16_order_gateway, 17_risk_gate,
-    18_l2_order_book, 19_order_book, 26_matching_engine, 30_ohlcv_aggregator
+    01_order_state_machine (ex02), 02_order_gateway (ex16),
+    03_risk_gate (ex17), 04_l2_order_book (ex18), 05_order_book (ex19),
+    06_matching_engine (ex26), 07_ohlcv_aggregator (ex30)
   memory/                               # allocators
-    07_arena_allocator, 08_memory_pool_allocator
+    01_arena_allocator (ex07), 02_memory_pool_allocator (ex08)
   containers/                           # container & codec re-implementations
-    09_lru_cache, 15_dynamic_vector, 20_priority_queue, 24_hash_map,
-    32_varint_codec
+    01_lru_cache (ex09), 02_dynamic_vector (ex15), 03_priority_queue (ex20),
+    04_hash_map (ex24), 05_varint_codec (ex32)
   concurrency/                          # primitives, coordination, lock-free
-    11_spinlock, 12_seqlock, 13_ring_buffer_spsc, 14_thread_pool,
-    21_ring_buffer_mpmc, 22_lockfree_stack, 23_object_pool, 25_symbol_table,
-    27_semaphore, 28_spin_barrier, 29_mcs_lock, 31_serial_executor
-  patterns/                              # design patterns (HFT flavor)
-    33_factory_orders, 34_strategy_execution, 35_observer_market_data,
-    36_command_order_entry, 37_chain_risk
-  algorithms/                            # coding-screen algorithms & DS
-    38_linked_list, 39_two_pointer, 40_sliding_window, 41_binary_search_tree,
-    42_graph_search, 43_heap
+    01_spinlock (ex11), 02_seqlock (ex12), 03_ring_buffer_spsc (ex13),
+    04_thread_pool (ex14), 05_ring_buffer_mpmc (ex21),
+    06_lockfree_stack (ex22), 07_object_pool (ex23), 08_symbol_table (ex25),
+    09_semaphore (ex27), 10_spin_barrier (ex28), 11_mcs_lock (ex29),
+    12_serial_executor (ex31)
+  patterns/                             # design patterns (HFT flavor)
+    01_factory_orders (ex33), 02_strategy_execution (ex34),
+    03_observer_market_data (ex35), 04_command_order_entry (ex36),
+    05_chain_risk (ex37)
+  algorithms/                           # coding-screen algorithms & DS
+    01_linked_list (ex38), 02_two_pointer (ex39), 03_sliding_window (ex40),
+    04_binary_search_tree (ex41), 05_graph_search (ex42), 06_heap (ex43)
 ```
 
 Each has `TASK.md` (the problem statement — what to implement and what the
@@ -93,51 +105,51 @@ ctest --test-dir build -R ring_buffer_spsc          # one suite
 ctest --test-dir build -N                           # list suites
 ```
 
-| Target (ctest name) | Suite | Difficulty tier | Description |
-|---|---|---|---|
-| `tick_statistics_test` | 01 | easy | Live mean/var/VWAP/EMA stats for a feed handler |
-| `order_state_machine_test` | 02 | easy | Atomic order-state machine, CAS transitions |
-| `twap_vwap_slicer_test` | 03 | easy | Parent-order slicers (largest-remainder rounding) |
-| `position_tracker_test` | 04 | easy | Avg-cost position: realized/unrealized PnL |
-| `token_bucket_test` | 05 | easy | Order throttling: lazy refill, mock clock, no timers |
-| `sequenced_stream_test` | 06 | easy | Feed gap detector / reorder buffer |
-| `arena_allocator_test` | 07 | easy | Bump-pointer arena: chunk chain, align, marks, bulk reclaim |
-| `pool_allocator_test` | 08 | easy | Fixed-size freelist pool allocator |
-| `lru_cache_test` | 09 | easy | Hashmap + intrusive-list LRU cache |
-| `timer_wheel_test` | 10 | easy | Tick-driven timer wheel |
-| `spinlock_test` | 11 | primitives | TAS/TTAS spinlock with backoff (BasicLockable) |
-| `seqlock_test` | 12 | primitives | Seqlock (seq number) + RWSpinLock (reader count) |
-| `ring_buffer_spsc_test` | 13 | primitives | SPSC lock-free ring buffer, capacity N-1 |
-| `thread_pool_test` | 14 | coordination | Fixed-worker pool, `submit()` -> `std::future` |
-| `dynamic_vector_test` | 15 | containers | std::vector clone: geometric growth, emplace, raw-ptr iterators |
-| `order_gateway_test` | 16 | domain | Idempotent gateway: client-id dedup, TTL + exactly-one-win |
-| `risk_gate_test` | 17 | domain | Pre-trade position/notional limits, CAS check-then-commit |
-| `l2_order_book_test` | 18 | domain | Snapshot + incremental L2 book, checksum digest |
-| `order_book_test` | 19 | domain | Limit order book: add/cancel/modify/market, top-of-book |
-| `priority_queue_test` | 20 | containers | Binary-heap priority queue (sift-up/sift-down) |
-| `ring_buffer_mpmc_test` | 21 | lock-free | Vyukov bounded MPMC queue (blocking push) |
-| `lockfree_stack_test` | 22 | lock-free | Treiber stack (+ ABA handling) |
-| `object_pool_test` | 23 | lock-free | Fixed-capacity object pool: RAII handles, lock-free freelist |
-| `hash_map_test` | 24 | containers | Open-addressed HashMap (unordered_map clone, tombstones) |
-| `symbol_table_test` | 25 | lock-free | Thread-safe two-way symbol<->id interning |
-| `matching_engine_test` | 26 | capstone | Price-time priority order book |
-| `semaphore_test` | 27 | coordination | Counting semaphore (mutex + condition_variable) |
-| `spin_barrier_test` | 28 | coordination | Sense-reversing N-thread spin barrier |
-| `mcs_lock_test` | 29 | lock-free | MCS queue lock (scalable, no spinning on a shared cacheline) |
-| `ohlcv_aggregator_test` | 30 | domain | Trade → OHLCV candle aggregation (bucketed, gap candles) |
-| `serial_executor_test` | 31 | coordination | Serialized task executor: FIFO, one-at-a-time, drain/shutdown |
-| `varint_codec_test` | 32 | containers | LEB128 varint + length-prefixed frame codec |
-| `factory_orders_test` | 33 | patterns | Venue order factories: integer tick quantization, strict venue rules |
-| `strategy_execution_test` | 34 | patterns | Strategy pattern: pluggable order execution (TWAP/VWAP/Sniper) |
-| `observer_market_data_test` | 35 | patterns | Observer: symbol-filtered market-data fan-out, safe unsubscribe |
-| `command_order_entry_test` | 36 | patterns | Command: order-entry actions as executable/undoable log |
-| `chain_risk_test` | 37 | patterns | Chain of responsibility: pre-trade risk gate pipeline |
-| `linked_list_test` | 38 | algorithms | Intrusive doubly-linked list: O(1) erase(it), reverse, deep copy |
-| `two_pointer_test` | 39 | algorithms | Two-pointer: sum pairs, merge, dedup, triple-sum, max-area, palindrome |
-| `sliding_window_test` | 40 | algorithms | Sliding window: monotonic-queue max, sums, min-subarray, distinct-run |
-| `binary_search_tree_test` | 41 | algorithms | BST: insert/erase (0/1/2-child), min/max, nearest, in-order |
-| `graph_search_test` | 42 | algorithms | BFS/DFS order, hop distances, components, cycle detection |
-| `heap_test` | 43 | algorithms | Implicit heap: build-from-range O(n), erase_at, replace, heapsort |
+| Target (ctest name) | Suite (global ex01–ex43) | Location | Difficulty tier | Description |
+|---|---|---|---|---|
+| `tick_statistics_test` | 01 | logic/01_tick_statistics | easy | Live mean/var/VWAP/EMA stats for a feed handler |
+| `order_state_machine_test` | 02 | domain/01_order_state_machine | easy | Atomic order-state machine, CAS transitions |
+| `twap_vwap_slicer_test` | 03 | logic/02_twap_vwap_slicer | easy | Parent-order slicers (largest-remainder rounding) |
+| `position_tracker_test` | 04 | logic/03_position_tracker | easy | Avg-cost position: realized/unrealized PnL |
+| `token_bucket_test` | 05 | logic/04_token_bucket | easy | Order throttling: lazy refill, mock clock, no timers |
+| `sequenced_stream_test` | 06 | logic/05_sequenced_stream | easy | Feed gap detector / reorder buffer |
+| `arena_allocator_test` | 07 | memory/01_arena_allocator | easy | Bump-pointer arena: chunk chain, align, marks, bulk reclaim |
+| `pool_allocator_test` | 08 | memory/02_memory_pool_allocator | easy | Fixed-size freelist pool allocator |
+| `lru_cache_test` | 09 | containers/01_lru_cache | easy | Hashmap + intrusive-list LRU cache |
+| `timer_wheel_test` | 10 | logic/06_timer_wheel | easy | Tick-driven timer wheel |
+| `spinlock_test` | 11 | concurrency/01_spinlock | primitives | TAS/TTAS spinlock with backoff (BasicLockable) |
+| `seqlock_test` | 12 | concurrency/02_seqlock | primitives | Seqlock (seq number) + RWSpinLock (reader count) |
+| `ring_buffer_spsc_test` | 13 | concurrency/03_ring_buffer_spsc | primitives | SPSC lock-free ring buffer, capacity N-1 |
+| `thread_pool_test` | 14 | concurrency/04_thread_pool | coordination | Fixed-worker pool, `submit()` -> `std::future` |
+| `dynamic_vector_test` | 15 | containers/02_dynamic_vector | containers | std::vector clone: geometric growth, emplace, raw-ptr iterators |
+| `order_gateway_test` | 16 | domain/02_order_gateway | domain | Idempotent gateway: client-id dedup, TTL + exactly-one-win |
+| `risk_gate_test` | 17 | domain/03_risk_gate | domain | Pre-trade position/notional limits, CAS check-then-commit |
+| `l2_order_book_test` | 18 | domain/04_l2_order_book | domain | Snapshot + incremental L2 book, checksum digest |
+| `order_book_test` | 19 | domain/05_order_book | domain | Limit order book: add/cancel/modify/market, top-of-book |
+| `priority_queue_test` | 20 | containers/03_priority_queue | containers | Binary-heap priority queue (sift-up/sift-down) |
+| `ring_buffer_mpmc_test` | 21 | concurrency/05_ring_buffer_mpmc | lock-free | Vyukov bounded MPMC queue (blocking push) |
+| `lockfree_stack_test` | 22 | concurrency/06_lockfree_stack | lock-free | Treiber stack (+ ABA handling) |
+| `object_pool_test` | 23 | concurrency/07_object_pool | lock-free | Fixed-capacity object pool: RAII handles, lock-free freelist |
+| `hash_map_test` | 24 | containers/04_hash_map | containers | Open-addressed HashMap (unordered_map clone, tombstones) |
+| `symbol_table_test` | 25 | concurrency/08_symbol_table | lock-free | Thread-safe two-way symbol<->id interning |
+| `matching_engine_test` | 26 | domain/06_matching_engine | capstone | Price-time priority order book |
+| `semaphore_test` | 27 | concurrency/09_semaphore | coordination | Counting semaphore (mutex + condition_variable) |
+| `spin_barrier_test` | 28 | concurrency/10_spin_barrier | coordination | Sense-reversing N-thread spin barrier |
+| `mcs_lock_test` | 29 | concurrency/11_mcs_lock | lock-free | MCS queue lock (scalable, no spinning on a shared cacheline) |
+| `ohlcv_aggregator_test` | 30 | domain/07_ohlcv_aggregator | domain | Trade → OHLCV candle aggregation (bucketed, gap candles) |
+| `serial_executor_test` | 31 | concurrency/12_serial_executor | coordination | Serialized task executor: FIFO, one-at-a-time, drain/shutdown |
+| `varint_codec_test` | 32 | containers/05_varint_codec | containers | LEB128 varint + length-prefixed frame codec |
+| `factory_orders_test` | 33 | patterns/01_factory_orders | patterns | Venue order factories: integer tick quantization, strict venue rules |
+| `strategy_execution_test` | 34 | patterns/02_strategy_execution | patterns | Strategy pattern: pluggable order execution (TWAP/VWAP/Sniper) |
+| `observer_market_data_test` | 35 | patterns/03_observer_market_data | patterns | Observer: symbol-filtered market-data fan-out, safe unsubscribe |
+| `command_order_entry_test` | 36 | patterns/04_command_order_entry | patterns | Command: order-entry actions as executable/undoable log |
+| `chain_risk_test` | 37 | patterns/05_chain_risk | patterns | Chain of responsibility: pre-trade risk gate pipeline |
+| `linked_list_test` | 38 | algorithms/01_linked_list | algorithms | Intrusive doubly-linked list: O(1) erase(it), reverse, deep copy |
+| `two_pointer_test` | 39 | algorithms/02_two_pointer | algorithms | Two-pointer: sum pairs, merge, dedup, triple-sum, max-area, palindrome |
+| `sliding_window_test` | 40 | algorithms/03_sliding_window | algorithms | Sliding window: monotonic-queue max, sums, min-subarray, distinct-run |
+| `binary_search_tree_test` | 41 | algorithms/04_binary_search_tree | algorithms | BST: insert/erase (0/1/2-child), min/max, nearest, in-order |
+| `graph_search_test` | 42 | algorithms/05_graph_search | algorithms | BFS/DFS order, hop distances, components, cycle detection |
+| `heap_test` | 43 | algorithms/06_heap | algorithms | Implicit heap: build-from-range O(n), erase_at, replace, heapsort |
 
 ### Sanitizers (off by default)
 
@@ -147,8 +159,8 @@ cmake -S . -B build-asan -DENABLE_ASAN=ON
 ```
 
 The concurrency suites carry the ctest labels `tsan;stress`
-(02, 05, 13, 16, 17, 21, 22, 23, 25, 27, 28, 29, 31) and exercise 35's observer
-carries `tsan;stress` (35); the rest are
+(global suite numbers 02, 05, 13, 16, 17, 21, 22, 23, 25, 27, 28, 29, 31) and
+suite 35's observer carries `tsan;stress` (35); the rest are
 plain `exerciseNN`. Do not
 combine TSan and ASan (asserted at configure time). `ENABLE_WERROR` is also
 available. The optional spinlock micro-benchmark builds with

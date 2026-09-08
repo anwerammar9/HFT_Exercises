@@ -1,4 +1,4 @@
-# Exercise 01 — Tick Statistics (Reference Solution)
+# Exercise logic/01_tick_statistics (ex01) — Tick Statistics (Reference Solution)
 
 **What you implement:** live per-symbol market-data stats with O(1) online
 accumulators for mean/variance/min/max/vwap/last, plus a retained price series

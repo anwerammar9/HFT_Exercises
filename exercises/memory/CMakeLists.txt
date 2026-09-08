@@ -1,2 +1,2 @@
-add_subdirectory(07_arena_allocator)
-add_subdirectory(08_memory_pool_allocator)
+add_subdirectory(01_arena_allocator)
+add_subdirectory(02_memory_pool_allocator)
