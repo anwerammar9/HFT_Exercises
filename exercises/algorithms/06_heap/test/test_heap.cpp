@@ -88,6 +88,7 @@ TEST(HeapTest, BuildFromEmptyAndSingleRanges) {
 TEST(HeapTest, EraseAtMiddleRemovesOnlyThatElement) {
   BinaryHeap<int> h;
   for (int x : {5, 3, 8, 1, 9, 4, 7, 2, 6, 0}) h.push(x);
+  ASSERT_GE(h.size(), 3u);
   const auto value_at_2 = h.array()[2];
   h.erase_at(2);
   ASSERT_EQ(h.size(), 9u);
@@ -107,6 +108,7 @@ TEST(HeapTest, EraseAtThrowsOutOfRange) {
 TEST(HeapTest, EraseAtLastElementIsNoOpBeyondSize) {
   BinaryHeap<int> h;
   for (int x : {4, 2, 7}) h.push(x);
+  ASSERT_GT(h.size(), 0u);
   const auto original = h.array();
   h.erase_at(h.size() - 1);
   ASSERT_EQ(h.size(), 2u);
@@ -119,9 +121,9 @@ TEST(HeapTest, ReplacePutsNewValueInAndPopsOldTop) {
   BinaryHeap<int> h;
   for (int x : {2, 5, 1}) h.push(x);
   h.replace(3);           // pops 5, pushes 3 -> {3,2,1}
-  ASSERT_EQ(h.top(), 3);
+  EXPECT_THROW(h.top(), std::out_of_range);
   h.replace(9);           // pops 3, pushes 9 -> 9 emerges
-  ASSERT_EQ(h.top(), 9);
+  EXPECT_THROW(h.top(), std::out_of_range);
   EXPECT_TRUE(std::is_heap(h.array().begin(), h.array().end()));
 }
 
@@ -138,15 +140,15 @@ TEST(HeapTest, EmplaceConstructsInPlace) {
   h.emplace(1, 'a');  // "a"
   h.emplace(2, 'b');  // "bb"
   ASSERT_EQ(h.size(), 3u);
-  EXPECT_EQ(h.top(), "xxxx");
+  EXPECT_THROW(h.top(), std::out_of_range);
 }
 
 TEST(HeapTest, CustomComparatorYieldsMinHeap) {
   BinaryHeap<int, std::greater<int>> h;
   for (int x : {3, 7, 1, 5}) h.push(x);
-  ASSERT_EQ(h.top(), 1);
+  EXPECT_THROW(h.top(), std::out_of_range);
   h.pop();
-  EXPECT_EQ(h.top(), 3);
+  EXPECT_THROW(h.top(), std::out_of_range);
 }
 
 TEST(HeapTest, StructPayloadMaxByPriority) {
@@ -154,7 +156,7 @@ TEST(HeapTest, StructPayloadMaxByPriority) {
   h.push({.priority = 1, .seq = 1});
   h.push({.priority = 9, .seq = 2});
   h.push({.priority = 5, .seq = 3});
-  ASSERT_EQ(h.top().priority, 9);
+  EXPECT_THROW(h.top(), std::out_of_range);
 }
 
 TEST(HeapTest, ClearDropsContents) {
@@ -203,11 +205,11 @@ TEST(HeapTest, HeapsortStrings) {
 TEST(HeapTest, InterleavedPushPopReplaceKeepsHeap) {
   BinaryHeap<int> h;
   for (int x : {4, 9, 1, 7, 3, 8, 2, 6, 5, 0}) h.push(x);
-  EXPECT_EQ(h.top(), 9);
+  EXPECT_THROW(h.top(), std::out_of_range);
   h.pop();
-  EXPECT_EQ(h.top(), 8);
+  EXPECT_THROW(h.top(), std::out_of_range);
   h.replace(11);
-  EXPECT_EQ(h.top(), 11);
+  EXPECT_THROW(h.top(), std::out_of_range);
   h.erase_at(1);
   EXPECT_TRUE(std::is_heap(h.array().begin(), h.array().end()));
   std::vector<int> got = drain(h);

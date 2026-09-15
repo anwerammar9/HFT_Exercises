@@ -1,7 +1,7 @@
 # C++ Low-Latency Playground — Citadel Interview Prep
 
 ## Goal
-A CMake project of 43 self-contained low-latency/concurrency exercises. Each
+A CMake project of 51 self-contained low-latency/concurrency exercises. Each
 exercise is its own CMake target built as a GoogleTest binary. History:
 
 - The original spike planned 10 exercises (01–10, C++17); that plan was
@@ -21,9 +21,16 @@ exercise is its own CMake target built as a GoogleTest binary. History:
   was appended after the patterns block — an intrusive linked list, the
   two-pointer and sliding-window patterns, a binary search tree, graph search,
   and a from-scratch implicit heap (build-from-range / erase_at / heapsort).
+  A final **ownership pair** (`memory/03_unique_ptr`, `memory/04_shared_ptr`,
+  suites **44–45**) was appended inside the memory theme — exclusive ownership
+  with move semantics, then atomic shared ownership with weak observation.
+  A closing **borrowing + GC block** (suites **46–51**) extended the same
+  theme — three borrow disciplines (runtime guards, explicit loan tokens,
+  typestate) then three collectors (arena tail-sweep, mark-sweep, hybrid
+  refcounting with cycle collection).
   Directories are numbered **per-category** (`01..NN` inside each theme, e.g.
   `concurrency/01_spinlock`, `algorithms/01_linked_list`) while the global
-  suite number (`ex01–ex43`) lives in `TASK.md`/`SOLUTION.md` titles, include
+  suite number (`ex01–ex51`) lives in `TASK.md`/`SOLUTION.md` titles, include
   guards, ctest labels (`exerciseNN`), README/PLAN tables, and cross-exercise
   references.
 - Baseline: **C++20** (each target sets `cxx_std_20`).
@@ -55,7 +62,7 @@ exercise is its own CMake target built as a GoogleTest binary. History:
 - Keep the concurrency/`stress` suites bounded and deterministic: consumer
   threads use bounded retry loops (`yield()` on contention, attempt caps) —
   tests must fail fast, not hang, under `ctest --timeout 90`.
-- Keep the **difficulty-ordered suite numbering (ex01–ex43)** stable: never
+- Keep the **difficulty-ordered suite numbering (ex01–ex51)** stable: never
   renumber suites unless explicitly asked; when the ordering changes, update
   `TASK.md`/`SOLUTION.md` titles, include guards, ctest labels, README/PLAN
   tables, and cross-exercise references together. Directory names are
@@ -65,7 +72,7 @@ exercise is its own CMake target built as a GoogleTest binary. History:
   code → build target + run its suite → GREEN → embed the exact bytes → restore
   the stub → final `ctest` re-verifies all suites RED with no hangs/crashes.
 
-## Per-exercise list (ex01 easy → ex43 hard)
+## Per-exercise list (ex01 easy → ex51 hard)
 | # | Location | Name | Blurb | Labels |
 |---|----------|------|-------|--------|
 | 01 | logic/01_tick_statistics | tick_statistics | Live mean/var/VWAP/EMA stats for a feed handler | exercise01 |
@@ -111,6 +118,14 @@ exercise is its own CMake target built as a GoogleTest binary. History:
 | 41 | algorithms/04_binary_search_tree | binary_search_tree | BST: insert/erase (0/1/2-child), min/max, nearest, in-order | exercise41 |
 | 42 | algorithms/05_graph_search | graph_search | BFS/DFS order, hop distances, components, cycle detection | exercise42 |
 | 43 | algorithms/06_heap | heap | Implicit binary heap: build-from-range, erase_at, replace, heapsort | exercise43 |
+| 44 | memory/03_unique_ptr | unique_ptr | Exclusive ownership: move-only, custom deleters, arrays, factories | exercise44 |
+| 45 | memory/04_shared_ptr | shared_ptr | Atomic shared ownership + weak observer, aliasing, single-alloc make_shared | exercise45 |
+| 46 | memory/05_borrow_guards | borrow_guards | RefCell-style runtime borrows: shared/exclusive RAII guards | exercise46 |
+| 47 | memory/06_loan_tokens | loan_tokens | Manual borrow discipline: generation-guarded loan tokens | exercise47 |
+| 48 | memory/07_state_borrow | state_borrow | Typestate borrowing: consuming borrow_mut, static exclusivity | exercise48 |
+| 49 | memory/08_arena_gc | arena_gc | Bump-arena GC: roots + trace, tail-only sweep, bulk reset | exercise49 |
+| 50 | memory/09_mark_sweep | mark_sweep | Classic mark-sweep: tracing collector, cycles collected | exercise50 |
+| 51 | memory/10_refcount_gc | refcount_gc | Hybrid refcounting + cycle collection (CPython-style) | exercise51 |
 
 ## CMake conventions
 - Top-level `CMakeLists.txt`: `enable_testing()`, FetchContent GoogleTest, then
@@ -128,11 +143,12 @@ exercise is its own CMake target built as a GoogleTest binary. History:
   plain `build/` dir.
 
 ## Suggested build order (easiest correctness proof → hardest)
-The global suite numbering (ex01–ex43) already encodes the suggested order.
+The global suite numbering (ex01–ex51) already encodes the suggested order.
 Themes in sequence: pure-logic/domain building blocks (01–06), allocators & containers
 (07–10, 15, 20, 24), concurrency primitives (11–13), coordination (14),
 market-data & trading systems (16–19), heavier lock-free
 structures (21–23, 25), the matching-engine capstone (26),
 coordination/codec capstone block (27–32), a design-patterns
-block (33–37), and a closing algorithms/data-structures
-block (38–43).
+block (33–37), a closing algorithms/data-structures
+block (38–43), the ownership pair (44–45), and the borrowing + GC
+block (46–51) back in the memory theme.

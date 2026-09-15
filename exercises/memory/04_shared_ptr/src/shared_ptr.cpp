@@ -1,0 +1,12 @@
+#include "shared_ptr.h"
+
+#include <string>
+
+// Implementation is inline in the header (see the TODO(anwer) markers once
+// this file is rolled back to practice mode). Keeping this TU pins the
+// instantiations exercised by the unit tests.
+
+template class SharedPtr<int>;
+template class SharedPtr<std::string>;
+template class WeakPtr<int>;
+template class WeakPtr<std::string>;

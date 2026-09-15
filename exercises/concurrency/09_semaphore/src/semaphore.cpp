@@ -18,7 +18,7 @@ void Semaphore::acquire()
 
 bool Semaphore::try_acquire()
 {
-
+    return false;
 }
 
 void Semaphore::release()
@@ -28,5 +28,5 @@ void Semaphore::release()
 
 std::size_t Semaphore::count() const
 {
-
+    return 0;
 }

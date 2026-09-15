@@ -12,7 +12,7 @@ structures every coding screen revisits (linked lists, two pointers, sliding
 window, binary search trees, graph search, heaps). Each exercise is its own
 CMake target + GoogleTest suite, so `ctest -R <name>` runs it in isolation.
 
-> Exercises carry a global suite number **ex01–ex43 in rough difficulty order**
+> Exercises carry a global suite number **ex01–ex51 in rough difficulty order**
 > (easy → hard): pure-logic/domain building blocks first, then allocators and
 > containers, then concurrency primitives and coordination, then the heavier
 > lock-free structures and concurrent maps, finishing with the matching-engine
@@ -40,7 +40,7 @@ CMake target + GoogleTest suite, so `ctest -R <name>` runs it in isolation.
 ```
 exercises/                              # grouped by theme; each theme numbers
                                         # its exercises 01..NN (category-local).
-                                        # The global 01–43 suite number lives in
+                                        # The global 01–51 suite number lives in
                                         # TASK.md / ctest LABELS / include guards.
   logic/                                # pure computation & scheduling logic (easy)
     01_tick_statistics (ex01), 02_twap_vwap_slicer (ex03),
@@ -50,8 +50,11 @@ exercises/                              # grouped by theme; each theme numbers
     01_order_state_machine (ex02), 02_order_gateway (ex16),
     03_risk_gate (ex17), 04_l2_order_book (ex18), 05_order_book (ex19),
     06_matching_engine (ex26), 07_ohlcv_aggregator (ex30)
-  memory/                               # allocators
-    01_arena_allocator (ex07), 02_memory_pool_allocator (ex08)
+  memory/                               # allocators + ownership
+    01_arena_allocator (ex07), 02_memory_pool_allocator (ex08),
+    03_unique_ptr (ex44), 04_shared_ptr (ex45), 05_borrow_guards (ex46),
+    06_loan_tokens (ex47), 07_state_borrow (ex48), 08_arena_gc (ex49),
+    09_mark_sweep (ex50), 10_refcount_gc (ex51)
   containers/                           # container & codec re-implementations
     01_lru_cache (ex09), 02_dynamic_vector (ex15), 03_priority_queue (ex20),
     04_hash_map (ex24), 05_varint_codec (ex32)
@@ -105,7 +108,7 @@ ctest --test-dir build -R ring_buffer_spsc          # one suite
 ctest --test-dir build -N                           # list suites
 ```
 
-| Target (ctest name) | Suite (global ex01–ex43) | Location | Difficulty tier | Description |
+| Target (ctest name) | Suite (global ex01–ex51) | Location | Difficulty tier | Description |
 |---|---|---|---|---|
 | `tick_statistics_test` | 01 | logic/01_tick_statistics | easy | Live mean/var/VWAP/EMA stats for a feed handler |
 | `order_state_machine_test` | 02 | domain/01_order_state_machine | easy | Atomic order-state machine, CAS transitions |
@@ -150,6 +153,14 @@ ctest --test-dir build -N                           # list suites
 | `binary_search_tree_test` | 41 | algorithms/04_binary_search_tree | algorithms | BST: insert/erase (0/1/2-child), min/max, nearest, in-order |
 | `graph_search_test` | 42 | algorithms/05_graph_search | algorithms | BFS/DFS order, hop distances, components, cycle detection |
 | `heap_test` | 43 | algorithms/06_heap | algorithms | Implicit heap: build-from-range O(n), erase_at, replace, heapsort |
+| `unique_ptr_test` | 44 | memory/03_unique_ptr | memory | Exclusive ownership: move-only, custom deleters, arrays, make_unique |
+| `shared_ptr_test` | 45 | memory/04_shared_ptr | memory | Atomic shared ownership + weak observer, aliasing, single-alloc make_shared |
+| `borrow_guards_test` | 46 | memory/05_borrow_guards | memory | RefCell-style runtime borrows: shared/exclusive RAII guards |
+| `loan_tokens_test` | 47 | memory/06_loan_tokens | memory | Manual borrow discipline: generation-guarded loan tokens, repay by hand |
+| `state_borrow_test` | 48 | memory/07_state_borrow | memory | Typestate borrowing: consuming borrow_mut, LockedBox, static exclusivity |
+| `arena_gc_test` | 49 | memory/08_arena_gc | memory | Bump-arena GC: roots + trace, tail-only sweep, bulk reset |
+| `mark_sweep_test` | 50 | memory/09_mark_sweep | memory | Classic mark-sweep: tracing collector, cycles die like everything else |
+| `refcount_gc_test` | 51 | memory/10_refcount_gc | memory | CPython-style hybrid: prompt refcounts + cycle-collecting tracer |
 
 ### Sanitizers (off by default)
 
@@ -361,5 +372,38 @@ available. The optional spinlock micro-benchmark builds with
   (one is a no-op; bad index throws); `replace` = overwrite root + sift-down in
   one round-trip; `array()` lets tests assert `std::is_heap` directly;
   `heapsort` = build max-heap + pop-max-to-back over the shrinking prefix.
+- **44 UniquePtr** — move-only exclusive ownership over `T* ptr_ + Deleter`;
+  dtor = `reset()`, move = steal + null the source (self-move guarded),
+  `release` relinquishes without destroying, converting moves allow
+  Derived → Base; `T[]` spec swaps `*`/`->` for `operator[]` + `delete[]`;
+  `MakeUnique` / `MakeUniqueArray` factories; `malloc`/`free` deleter stays
+  ASan-clean.
+- **45 SharedPtr / WeakPtr** — one type-erased `ControlBase` per object
+  (`atomic` shared/weak, weak starts at 1 = the owners' stake); copies bump,
+  moves steal, assignment is copy/move-and-swap (self-safe); `lock()` upgrades
+  via CAS-loop `try_add_shared()`; custom deleters, aliasing ctor (member
+  views), Derived → Base copies; `MakeShared` placement-news into the same
+  allocation as the block; the parent/child test proves weak breaks cycles
+  and 4×2000 threads prove the count is atomic.
+- **46 BorrowGuards** — `RefCell`-style box (`T` + reader count + writer
+  flag); `try_borrow()` iff no writer, `try_borrow_mut()` iff fully free;
+  move-only RAII guards release on drop, moves never change counts.
+- **47 LoanTokens** — the manual version: copyable generation-id tokens,
+  `access()` throwing `invalid_argument` on dead/unknown/mismatched tokens,
+  `repay()` with double-repay detection, `prune()` keeping `loans()` exact.
+- **48 StateBorrow** — typestate: `borrow_mut() &&` consumes the box into
+  `(LockedBox, SMut)` (borrowing-while-mut is inexpressible), `release()`
+  is the only way back; the value sits behind `unique_ptr` so `SMut`
+  pointers stay stable across owner moves; live readers still throw.
+- **49 ArenaGc** — bump slots + roots + `trace()` edges; `collect()` marks
+  iteratively then pops only the dead tail (interior garbage pinned);
+  survivor indices never shift; capacity-bounded, `reset()` bulk-reclaims.
+- **50 MarkSweep** — `list` slots (stable addresses) + live set; mark from
+  roots following edges, sweep unmarked *anywhere*; unreachable cycles die;
+  `is_live()` never derefs freed memory.
+- **51 RefcountGc** — CPython hybrid: prompt intrusive counts (drop-to-zero
+  destroys immediately, chains cascade for free) + `collect_cycles()`
+  (internal-vs-external analysis → tracing mark → detach-then-destroy sweep
+  with drops suppressed mid-sweep); rooted/held cycles survive.
 
 GoogleTest is fetched via `FetchContent` on first configure (requires network).

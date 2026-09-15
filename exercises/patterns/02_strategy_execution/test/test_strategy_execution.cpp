@@ -158,7 +158,7 @@ TEST(StrategyExecutionTest, EngineDelegatesAndSwaps) {
   ctx.weights = {1.0};
   out.clear();
   engine.execute(ctx, [&out](const ChildOrder& c) { out.push_back(c); });
-  EXPECT_EQ(out.size(), 1u);  // stub: none emitted -> red
+  ASSERT_EQ(out.size(), 1u);  // stub: none emitted -> red
   EXPECT_EQ(out[0].qty, 100);
   EXPECT_STREQ(engine.strategy_name(), "vwap");  // stub: "twap" -> red
 }

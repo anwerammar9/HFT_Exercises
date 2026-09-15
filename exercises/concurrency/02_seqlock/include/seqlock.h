@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXERCISE12_SEQLOCK_H_
+#define EXERCISE12_SEQLOCK_H_
 
 #include <atomic>
 #include <cstdint>
@@ -30,3 +31,5 @@ class Seqlock {
   T value_{};
   mutable std::atomic<std::uint64_t> seq_{0};
 };
+
+#endif  // EXERCISE12_SEQLOCK_H_

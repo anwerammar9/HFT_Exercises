@@ -48,6 +48,7 @@ class ThreadPool {
   template <class F, class... Args>
   auto submit(F&& f, Args&&... args)
       -> std::future<std::invoke_result_t<F, Args...>> {
+    throw std::logic_error("not implemented");
   }
 
   void shutdown();
